@@ -45,7 +45,7 @@ let persons = [
 app.use(cors())
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
-
+app.use(express.static('dist'))
 
 // Middleware personalizado para almacenar el cuerpo de la solicitud
 app.use((req, res, next) => {
