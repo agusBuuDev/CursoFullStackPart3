@@ -28,7 +28,12 @@ let persons = [
       "id": 4,
       "name": "Mary Poppendieck", 
       "number": "39-23-6423122"
-    }
+    },
+    { 
+        "id": 5,
+        "name": "Juana de Arco", 
+        "number": "39-23-6425698"
+      }
 ]
 //json-parser para manejar las solicitudes http post
 app.use(express.json())
