@@ -1,8 +1,11 @@
 const express = require ('express')
 require('dotenv').config({path: './.env'})
-
 const app= express()
 const PORT = process.env.PORT 
+const morgan= require('morgan')
+
+
+//comenzamos
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`)
 })
@@ -35,8 +38,22 @@ let persons = [
         "number": "39-23-6425698"
       }
 ]
-//json-parser para manejar las solicitudes http post
+
+//Middleware area
 app.use(express.json())
+app.use(express.urlencoded({ extended: true }))
+
+// Middleware personalizado para almacenar el cuerpo de la solicitud
+app.use((req, res, next) => {
+  req.bodyContent = JSON.stringify(req.body)
+  next()
+})
+
+// Token personalizado para morgan que registra el cuerpo de la solicitud
+morgan.token('body', (req) => req.bodyContent || '')
+
+// Configura morgan para usar el token personalizado
+app.use(morgan(':method :url :status :res[content-length] - :response-time ms - :body'))
 
 //implementamos el GET de la home del servidor
 app.get('/', (request, response)=>{
