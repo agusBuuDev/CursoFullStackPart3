@@ -1,8 +1,10 @@
 const express = require ('express')
 require('dotenv').config({path: './.env'})
 const app= express()
-const PORT = process.env.PORT 
+const PORT = process.env.PORT || 3001
 const morgan= require('morgan')
+const cors = require('cors')
+
 
 
 //comenzamos
@@ -40,8 +42,10 @@ let persons = [
 ]
 
 //Middleware area
+app.use(cors())
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
+
 
 // Middleware personalizado para almacenar el cuerpo de la solicitud
 app.use((req, res, next) => {
