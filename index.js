@@ -4,6 +4,8 @@ const app= express()
 const PORT = process.env.PORT || 3001
 const morgan= require('morgan')
 const cors = require('cors')
+const fs = require('fs');
+const path = require('path');
 
 
 
@@ -13,33 +15,23 @@ app.listen(PORT, () => {
 })
 
 
-let persons = [
-    { 
-      "id": 1,
-      "name": "Arto Hellas", 
-      "number": "040-123456"
-    },
-    { 
-      "id": 2,
-      "name": "Ada Lovelace", 
-      "number": "39-44-5323523"
-    },
-    { 
-      "id": 3,
-      "name": "Dan Abramov", 
-      "number": "12-43-234345"
-    },
-    { 
-      "id": 4,
-      "name": "Mary Poppendieck", 
-      "number": "39-23-6423122"
-    },
-    { 
-        "id": 5,
-        "name": "Juana de Arco", 
-        "number": "39-23-6425698"
-      }
-]
+// Ruta al archivo JSON
+const dataFilePath = path.join(__dirname, 'data.json');
+
+// Leer los datos del archivo JSON al iniciar el servidor
+let persons = [];
+try {
+  const data = fs.readFileSync(dataFilePath, 'utf8');
+  persons = JSON.parse(data);
+} catch (err) {
+  console.error('Error al leer o parsear el archivo JSON:', err);
+}
+
+// Guardar los datos en el archivo JSON
+const saveData = () => {
+  fs.writeFileSync(dataFilePath, JSON.stringify(persons, null, 2), 'utf8');
+};
+
 
 //Middleware area
 app.use(cors())
@@ -95,7 +87,8 @@ app.get('/api/persons/:id', (request, response) => {
   //eliminar un recurso
   app.delete('/api/persons/:id', (request, response)=>{
     const id = Number(request.params.id)
-    const person= persons.filter(person=>person.id===id)
+    persons = persons.filter(person => person.id !== id)
+    saveData()
     response.status(204).end()
   } )
 
@@ -137,7 +130,7 @@ app.get('/api/persons/:id', (request, response) => {
     }
   
     persons = persons.concat(person)
-  
+    saveData()  
     response.json(person)
   })
 

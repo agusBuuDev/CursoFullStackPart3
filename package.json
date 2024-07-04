@@ -5,7 +5,9 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node index.js",
-    "dev": "nodemon index.js"
+    "dev": "nodemon index.js",
+    "build:ui": "@powershell Remove-Item -Recurse -Force dist && cd ../../CursoFullStackConAmor/part2/agenda && npm run build && @powershell Copy-Item dist -Recurse ../../../FullStackOpenPart3/CursoFullStackPart3  "
+
   },
   "author": "AgusBuuDev",
   "license": "ISC",
