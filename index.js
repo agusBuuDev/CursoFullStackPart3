@@ -27,13 +27,41 @@ app.use((req, res, next) => {
   next()
 })
 
-// Token personalizado para morgan que registra el cuerpo de la solicitud
+// --Token personalizado para morgan que registra el cuerpo de la solicitud
 morgan.token('body', (req) => req.bodyContent || '')
 
-// Configura morgan para usar el token personalizado
+// --Configura morgan para usar el token personalizado
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms - :body'))
 
+//--Middleware para el manejo de errrores
+const errorHandler = (error, request, response, next) => {
+  console.error(error.message)
 
+  if (error.name === 'CastError') {
+    return response.status(400).send({ error: 'malformatted id' })
+  } 
+
+  next(error)
+}
+app.use(errorHandler)
+
+
+//acceder a la ruta /info
+const fecha = new Date()
+app.get('/info', (request, response) => {
+  Person.countDocuments({})
+    .then(count => {
+      response.send(`
+        <h1>Agenda retro backend</h1>
+        <p>Contactos almacenados actualmente: ${count}</p>
+        <p>Hora y fecha actual: ${fecha.toString()}</p>
+      `)
+    })
+    .catch(error => {
+      console.error(error)
+      response.status(500).json({ error: 'internal server error' })
+    })
+})
 //acceder a la lista de todas las personas
 app.get('/api/people', (request, response) => {
   Person.find({/*si queda un objeto vacío busca todo, pero se pueden usar expresiones*/ }).then(contact => {
@@ -42,12 +70,22 @@ app.get('/api/people', (request, response) => {
   })
 })
 
+
+
+
+
 //buscar un recurso específico
 
-app.get('/api/people/:id', (request, response) => {
+app.get('/api/people/:id', (request, response, next) => {
   Person.findById(request.params.id).then(person => {
-    response.json(person)
+    if(person){
+      response.json(person)
+    }else{
+      response.status(404).end()
+    }
+    
   })
+  .catch(error => next(error))
 })
 
 
@@ -72,4 +110,25 @@ app.post('/api/people', (request, response) => {
   
   })
 
+  app.delete('/api/people/:id', (request, response, next) => {
+    Person.findByIdAndDelete(request.params.id)
+      .then(result => {
+        response.status(204).end()
+      })
+      .catch(error => next(error))
+  })
 
+  app.put('/api/people/:id', (request, response, next) => {
+    const body = request.body
+  
+    const person = {
+      name: body.name,
+      number: body.number,
+    }
+  
+    Person.findByIdAndUpdate(request.params.id, person, { new: true })
+      .then(updatedPerson => {
+        response.json(updatedPerson)
+      })
+      .catch(error => next(error))
+  })
