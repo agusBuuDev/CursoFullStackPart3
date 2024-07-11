@@ -4,30 +4,7 @@ const mongoose = require('mongoose')
 const app= express()
 const PORT = process.env.PORT || 3001
 const morgan= require('morgan')
-const cors = require('cors')
-const fs = require('fs');
-const path = require('path');
-
-//conexión a mongo db
-const password = process.env.DB_MONGO_PASS
-const name= process.argv[2] //argumentos para cargar datos por consola
-const number= process.argv[3]
-
-
-const url =`mongodb+srv://agusbuu:${password}@agusbuutest.vwagzp6.mongodb.net/agendaRetro?retryWrites=true&w=majority&appName=AgusBuuTest`
-mongoose.set('strictQuery',false)
-mongoose.connect(url)
-console.log('conexion existosa')
-
-//creación del esquema de cada documento mongo
-  
-const personSchema = new mongoose.Schema({
-  name: String,
-  number: Number,
-})
-
-const Person = mongoose.model('Person', personSchema)
-
+const Person = require('./models/person')
 
 
 
@@ -65,10 +42,22 @@ app.get('/api/people', (request, response) => {
   })
 })
 
+//buscar un recurso específico
+
+app.get('/api/people/:id', (request, response) => {
+  Person.findById(request.params.id).then(person => {
+    response.json(person)
+  })
+})
+
+
 //crear un nuevo recurso
 app.post('/api/people', (request, response) => {
   const body = request.body
-   
+ 
+  if (body.name === undefined || body.name==='') {
+    return response.status(400).json({ error: 'content missing' })
+  }
   const person = new Person(
     {
       name: body.name,
@@ -76,7 +65,8 @@ app.post('/api/people', (request, response) => {
     }
     ) 
   
-    person.save().then(result => {
+    person.save().then(savedPerson => {
+      response.json(savedPerson)
       console.log('contact saved!')
   })
   
