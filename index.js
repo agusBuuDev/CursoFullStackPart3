@@ -38,10 +38,12 @@ const errorHandler = (error, request, response, next) => {
   console.error(error.message)
 
   if (error.name === 'CastError') {
-    return response.status(400).send({ error: 'malformatted id' })
-  } 
+    return response.status(400).send({ error: 'Malformatted ID' })
+  } else if (error.name === 'ValidationError') {
+    return response.status(400).json({ error: error.message })
+  }
 
-  next(error)
+  next(error) // Llama a next para otros tipos de errores
 }
 app.use(errorHandler)
 
@@ -90,7 +92,7 @@ app.get('/api/people/:id', (request, response, next) => {
 
 
 //crear un nuevo recurso
-app.post('/api/people', (request, response) => {
+app.post('/api/people', (request, response, next) => {
   const body = request.body
  
   if (body.name === undefined || body.name==='') {
@@ -107,11 +109,13 @@ app.post('/api/people', (request, response) => {
       response.json(savedPerson)
       console.log('contact saved!')
   })
-  
+  .catch(error => next(error))
+ 
   })
 
   app.delete('/api/people/:id', (request, response, next) => {
-    Person.findByIdAndDelete(request.params.id)
+    
+    Person.findByIdAndDelete(request.params.id )
       .then(result => {
         response.status(204).end()
       })
@@ -119,14 +123,9 @@ app.post('/api/people', (request, response) => {
   })
 
   app.put('/api/people/:id', (request, response, next) => {
-    const body = request.body
-  
-    const person = {
-      name: body.name,
-      number: body.number,
-    }
-  
-    Person.findByIdAndUpdate(request.params.id, person, { new: true })
+    const {name, number} = request.body
+       
+    Person.findByIdAndUpdate(request.params.id, {name, number}, { new: true, runValidators: true, context: 'query' })
       .then(updatedPerson => {
         response.json(updatedPerson)
       })
